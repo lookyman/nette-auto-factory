@@ -10,6 +10,7 @@ use Nette\DI\CompilerExtension;
 use Nette\DI\Helpers;
 use Nette\Loaders\RobotLoader;
 use Nette\PhpGenerator\ClassType;
+use Nette\PhpGenerator\Parameter;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\Utils\AssertionException;
 use Nette\Utils\Validators;
@@ -86,8 +87,15 @@ class AutoFactoryExtension extends CompilerExtension
 			// add dependency
 			$builder->addDependency($rc);
 
-			// @todo resolve arguments
+			// crudely resolve arguments
 			$args = [];
+			if ($constructor = $rc->getConstructor()) {
+				foreach ($constructor->getParameters() as $parameter) {
+					if (!($type = $parameter->getType()) || $type->isBuiltin()) {
+						$args[] = (new Parameter($parameter->getName()))->setTypeHint($type);
+					}
+				}
+			}
 
 			// create a factory interface
 			$name = str_replace('\\', '', $class) . '___GeneratedFactoryInterface';
