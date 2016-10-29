@@ -1,0 +1,12 @@
+{
+  "require": {
+    "php": ">=7.0",
+    "nette/di": "dev-master",
+    "nette/robot-loader": "^2.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Lookyman\\Nette\\AutoFactory\\": "src/"
+    }
+  }
+}
