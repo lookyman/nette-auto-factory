@@ -89,10 +89,12 @@ class AutoFactoryExtension extends CompilerExtension
 
 			// crudely resolve arguments
 			$args = [];
+			$comment = '';
 			if ($constructor = $rc->getConstructor()) {
 				foreach ($constructor->getParameters() as $parameter) {
 					if (!($type = $parameter->getType()) || $type->isBuiltin()) {
-						$args[] = (new Parameter($parameter->getName()))->setTypeHint($type);
+						$args[] = $arg = Parameter::from($parameter);
+						$comment .= $this->generateParameterDocComment($arg);
 					}
 				}
 			}
@@ -104,7 +106,8 @@ class AutoFactoryExtension extends CompilerExtension
 				->setExtends(IGeneratedFactory::class)
 				->addMethod('create')
 				->setParameters($args)
-				->setReturnType($rc->getName());
+				->setReturnType($rc->getName())
+				->setComment(rtrim($comment));
 
 			// save it and load it
 			$filename = $config['proxyDir'] . '/' . $name . '.php';
@@ -146,5 +149,19 @@ class AutoFactoryExtension extends CompilerExtension
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * @param Parameter $parameter
+	 * @return string
+	 */
+	private function generateParameterDocComment(Parameter $parameter): string
+	{
+		return '@param '
+		. ($parameter->getTypeHint() ?: 'mixed')
+		. ($parameter->isOptional() && $parameter->getDefaultValue() === null ? '|null' : '')
+		. ' $'
+		. $parameter->getName()
+		. "\n";
 	}
 }
